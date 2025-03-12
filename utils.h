@@ -19,4 +19,7 @@ double* mat_norm(double* mat, int rows, int cols);
 double* random_mat(int rows, int cols);
 double* mat_ones(int rows, int cols);
 
+double* conv2d_mul(double* mat, double* kernel, int rows, int cols, int kernel_size);
+double* conv2d_mul_gr(double* mat, double* kernel, int rows, int cols, int kernel_size);
+
 #endif

@@ -119,3 +119,20 @@ double* mat_ones(int rows, int cols){
     return result;
 }
 
+
+double* conv2d_mul(double* mat, double* kernel, int rows, int cols, int kernel_size){
+    double* result = (double*)malloc((rows-kernel_size+1)*(cols-kernel_size+1)*sizeof(double));
+    for(int i=0; i<rows-kernel_size+1; i++){
+        for(int j=0; j<cols-kernel_size+1; j++){
+            result[i*(cols-kernel_size+1)+j] = 0;
+            for(int k=0; k<kernel_size; k++){
+                for(int l=0; l<kernel_size; l++){
+                    result[i*(cols-kernel_size+1)+j] += mat[(i+k)*cols+j+l]*kernel[k*kernel_size+l];
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
