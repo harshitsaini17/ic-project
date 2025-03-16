@@ -13,14 +13,20 @@
 typedef struct {
     unsigned char label;
     unsigned char pixels[IMAGE_SIZE];
-} Image;
+} ImageC;
+
+typedef struct {
+    double label;
+    double pixels[IMAGE_SIZE];
+} ImageF;
 
 int main() {
     FILE *file;
-    Image *images;
+    ImageC *images;
+    ImageF *images_f;
     char filename[100];
     
-    images = (Image*)malloc(NUM_IMAGES * sizeof(Image));
+    images = (ImageC*)malloc(NUM_IMAGES * sizeof(ImageC));
     if (images == NULL) {
         printf("Memory allocation failed\n");
         return 1;
@@ -33,13 +39,20 @@ int main() {
         return 1;
     }
 
-    size_t items_read = fread(images, sizeof(Image), NUM_IMAGES, file);
+    size_t items_read = fread(images, sizeof(ImageC), NUM_IMAGES, file);
     printf("Read %zu images from file\n", items_read);
     
     fclose(file);
 
+    images_f = (ImageF*)malloc(NUM_IMAGES * sizeof(ImageF));
+    for(int i=0; i<NUM_IMAGES; i++){
+        images_f[i].label = (double)images[i].label;
+        memcpy(images_f[i].pixels, norm_image(images[i].pixels, IMAGE_SIZE), IMAGE_SIZE * sizeof(double));
+    }
+
     
-   
+
+
     
     
     free(images);
