@@ -149,3 +149,41 @@ int* conv2d_mul_int(int* mat, int* kernel, int rows, int cols, int kernel_size){
     }
     return result;
 }
+
+double* maxpool2d(double* mat, int rows, int cols, int pool_size, int stride){
+    int new_rows = (rows-pool_size)/stride+1;
+    int new_cols = (cols-pool_size)/stride+1;
+    double* result = (double*)malloc(new_rows*new_cols*sizeof(double));
+    for(int i=0; i<new_rows; i++){
+        for(int j=0; j<new_cols; j++){
+            result[i*new_cols+j] = 0;
+            for(int k=0; k<pool_size; k++){
+                for(int l=0; l<pool_size; l++){
+                    result[i*new_cols+j] = fmax(result[i*new_cols+j],mat[(i*stride+k)*cols+j*stride+l]);
+                }
+            }
+        }
+    }
+    return result;
+}
+
+double* norm_image(unsigned char* mat, int length){
+    double* result = (double*)malloc(length*sizeof(double));
+    for(int i=0; i<length; i++){
+        result[i] = (double)mat[i]/255;
+    }
+    return result;
+}
+
+unsigned char* denorm_image(double* mat, int length){
+    unsigned char* result = (unsigned char*)malloc(length*sizeof(unsigned char));
+    for(int i=0; i<length; i++){
+        result[i] = (unsigned char)(mat[i]*255);
+    }
+    return result;
+}
+
+
+
+
+
