@@ -13,8 +13,9 @@ typedef struct{
 
 }ModelResult;
 
-void model(double* pixels, ModelResult* result);
 ModelResult* ModelParams();
+void model(double* pixels, ModelResult* result);
+void backward(ModelResult* result);
 
 
 #endif

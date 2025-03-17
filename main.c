@@ -57,12 +57,21 @@ int main() {
     for(int i = 0; i < BATCH_SIZE; i++) {
         model(imagesF[i].pixels, model_result);
         loss.value += neg_log_likelihood(model_result->out, imagesF[i].label, 10, loss.grad/BATCH_SIZE).value;
+        backward(model_result);
+        for(int i = 0; i < 10; i++) {
+            printf("%f ", model_result->out[i].grad);
+        }
+        printf("\n");
+        for(int i = 0; i < 10; i++) {
+            printf("%f ", model_result->linear3->out[i].grad);
+        }
+        printf("\n");
+        printf("\n");
     }
     loss.value /= BATCH_SIZE;
     printf("Loss: %f\n", loss.value);
 
-    // backward pass
-    backward(model_result);
+
 
 
     // free memory

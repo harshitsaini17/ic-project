@@ -38,7 +38,7 @@ void relu_mat(Tensor* mat, int elements){
     }
 }
 
-void mat_softmax(Tensor* mat, int elements){
+void mat_softmax(Tensor* mat, int elements, Tensor* out){
     double max_val = -INFINITY;
     for(int i=0; i<elements; i++){
         if(mat[i].value>max_val){
@@ -47,19 +47,43 @@ void mat_softmax(Tensor* mat, int elements){
     }
     double sum = 0;
     for(int i=0; i<elements; i++){
-        mat[i].value = exp(mat[i].value-max_val);
-        sum += mat[i].value;
+        out[i].value = exp(mat[i].value-max_val);
+        sum += out[i].value;
     }
     for(int i=0; i<elements; i++){
-        mat[i].value /= sum;
+        out[i].value /= sum;
     }
 }
 
+void softmax_backward(Tensor* mat, int elements, Tensor* out){
+    // softmax formula
+    // s_i = e^(x_i-x_max)/sum(e^(x_i-x_max))
+    /*
+        s_i = chain[i].value
+        x_k = mat[k].value
+        ∂s_i/∂x_k = {
+                        s_i(1-s_i)          if i=k
+                        -s_i×s_k            if i≠k
+                    }
+    simplified:
+        ∂L/∂x_j = s_j(∂L/∂s_j - Σ_i (∂L/∂s_i)s_i)
+    */
+   double sum = 0;
+   for(int i=0; i<elements; i++){
+       sum += out[i].value * out[i].grad;
+   }
+   
+   for(int j=0; j<elements; j++){
+       mat[j].grad += out[j].value * (out[j].grad - sum);
+   }
+    
+}
 
 Tensor* random_mat(int elements){
     Tensor* result = (Tensor*)malloc(elements*sizeof(Tensor));
     for(int i=0; i<elements; i++){
         result[i].value = (double)rand()/RAND_MAX;
+        result[i].grad = 0;
     }
     return result;
 }

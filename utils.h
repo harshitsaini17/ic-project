@@ -8,7 +8,8 @@
 
 Tensor relu(Tensor num);
 void relu_mat(Tensor* mat, int elements);
-void mat_softmax(Tensor* mat, int elements);
+void mat_softmax(Tensor* mat, int elements, Tensor* out);
+void softmax_backward(Tensor* mat, int elements, Tensor* out);
 
 Tensor* mat_sum(Tensor* mat1, Tensor bias, int rows, int cols);
 Tensor* mat_mul(Tensor* mat1, Tensor* mat2, int rows1, int cols1, int cols2);
