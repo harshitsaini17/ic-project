@@ -9,7 +9,7 @@ typedef struct{
     LinearResult* linear1;
     LinearResult* linear2;
     LinearResult* linear3;
-    double* out;
+    Tensor* out;
 
 }ModelResult;
 
