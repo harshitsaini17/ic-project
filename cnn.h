@@ -20,6 +20,8 @@ typedef struct {
 
 void conv2d(Tensor* mat, int rows, int cols, int in_channel, int out_channel, int kernel_size, ConvResult* result);
 void linear(Tensor* mat, int in_features, int out_features, LinearResult* result);
+void linear_backward(Tensor* mat, int in_features, int out_features, LinearResult* out);
+
 
 #endif
 

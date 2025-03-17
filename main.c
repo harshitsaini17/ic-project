@@ -58,13 +58,24 @@ int main() {
         model(imagesF[i].pixels, model_result);
         loss.value += neg_log_likelihood(model_result->out, imagesF[i].label, 10, loss.grad/BATCH_SIZE).value;
         backward(model_result);
+        printf("Linear3 Weight grad: ");
         for(int i = 0; i < 10; i++) {
-            printf("%f ", model_result->out[i].grad);
+            printf("%f ", model_result->linear3->weights[i].grad);
         }
         printf("\n");
+        printf("Linear3 Bias grad: ");
         for(int i = 0; i < 10; i++) {
-            printf("%f ", model_result->linear3->out[i].grad);
+            printf("%f ", model_result->linear3->bias[i].grad);
         }
+        printf("\n");
+        printf("Linear2 Out grad: ");
+        for(int i = 0; i < 10; i++) {
+            printf("%f ", model_result->linear2->out[i].grad);
+        }
+        // printf("\nOut Grad: ");
+        // for(int i=0; i<10; i++){
+        //     printf("%f ", model_result->out[i].grad);
+        // }
         printf("\n");
         printf("\n");
     }

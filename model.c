@@ -17,26 +17,39 @@ ModelResult* ModelParams(){
     result->conv1->weights = random_mat(5*5*3*6);
     result->conv1->bias = random_mat(6);
     result->conv1->out = (Tensor*)malloc(6*(IMAGE_HEIGHT-4)*(IMAGE_WIDTH-4)*sizeof(Tensor));
+    for(int i=0; i<6*(IMAGE_HEIGHT-4)*(IMAGE_WIDTH-4); i++){
+        result->conv1->out[i].grad = 0;
+    }
 
     result->conv2 = (ConvResult*)malloc(sizeof(ConvResult));
     result->conv2->weights = random_mat(5*5*6*16);
     result->conv2->bias = random_mat(16);
     result->conv2->out = (Tensor*)malloc(16*((IMAGE_HEIGHT-4)/2-4)*((IMAGE_WIDTH-4)/2-4)*sizeof(Tensor));
+    for(int i=0; i<16*((IMAGE_HEIGHT-4)/2-4)*((IMAGE_WIDTH-4)/2-4); i++){
+        result->conv2->out[i].grad = 0;
+    }
 
 
     result->linear1 = (LinearResult*)malloc(sizeof(LinearResult));
     result->linear1->weights = random_mat(120*16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2);
     result->linear1->bias = random_mat(120);
     result->linear1->out = (Tensor*)malloc(120*sizeof(Tensor));
+    for(int i=0; i<120; i++){
+        result->linear1->out[i].grad = 0;
+    }
 
     result->linear2 = (LinearResult*)malloc(sizeof(LinearResult));
     result->linear2->weights = random_mat(84*120);
     result->linear2->bias = random_mat(84);
     result->linear2->out = (Tensor*)malloc(84*sizeof(Tensor));
+    for(int i=0; i<84; i++){
+        result->linear2->out[i].grad = 0;
+    }
 
     result->linear3 = (LinearResult*)malloc(sizeof(LinearResult));
     result->linear3->weights = random_mat(10*84);
     result->linear3->bias = random_mat(10);
+
     result->linear3->out = (Tensor*)malloc(10*sizeof(Tensor));
     for(int i=0; i<10; i++){
         result->linear3->out[i].grad = 0;
@@ -89,6 +102,6 @@ void model(double* pixels, ModelResult* result){
 void backward(ModelResult* result){
 
     softmax_backward(result->linear3->out, 10, result->out);
-    
+    linear_backward(result->linear2->out, 84, 10, result->linear3);
 }
 

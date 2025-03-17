@@ -33,3 +33,27 @@ void linear(Tensor* mat, int in_features, int out_features, LinearResult* result
     free(temp);
 }
 
+void linear_backward(Tensor* mat, int in_features, int out_features, LinearResult* out){
+    
+    // out weights grad
+    for(int i=0; i<out_features; i++){
+        for(int j=0; j<in_features; j++){
+            out->weights[j*out_features+i].grad += mat[j].value * (out->out[i].grad-out->bias[i].grad);
+        }
+    }
+    
+    
+    // mat out grad
+    for(int i=0; i<in_features; i++){
+        for(int j=0; j<out_features; j++){
+            mat[i].grad += out->weights[i*out_features+j].value * (out->out[j].grad-out->bias[j].grad);
+        }
+    }
+
+    // out bias grad
+    for(int i=0; i<out_features; i++){
+        out->bias[i].grad = out->out[i].grad;
+    }
+
+}
+
