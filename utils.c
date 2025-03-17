@@ -2,20 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include "utils.h"
-double relu(double num){
-    return fmax(0,num);
-}
 
-double relu_gr(double num){
-    return num>0?1:0;
-}
-
-
-double* mat_sum(double* mat1, double* mat2, int rows, int cols){
+double* mat_sum(double* mat1, double bias, int rows, int cols){
     double* result = (double*)malloc(rows*cols*sizeof(double));
     for(int i=0; i<rows; i++){
         for(int j=0; j<cols; j++){
-            result[i*cols+j] = mat1[i*cols+j] + mat2[i*cols+j];
+            result[i*cols+j] = mat1[i*cols+j] + bias;
         }
     }
     return result;
@@ -33,6 +25,38 @@ double* mat_mul(double* mat1, double* mat2, int rows1, int cols1, int cols2){
     }
     return result;
 }
+
+double relu(double num){
+    return fmax(0,num);
+}
+
+double relu_gr(double num){
+    return num>0?1:0;
+}
+
+void relu_mat(double* mat, int elements){
+    for(int i=0; i<elements; i++){
+        mat[i] = relu(mat[i]);
+    }
+}
+
+void mat_softmax(double* mat, int elements){
+    double max_val = -INFINITY;
+    for(int i=0; i<elements; i++){
+        if(mat[i]>max_val){
+            max_val = mat[i];
+        }
+    }
+    double sum = 0;
+    for(int i=0; i<elements; i++){
+        mat[i] = exp(mat[i]-max_val);
+        sum += mat[i];
+    }
+    for(int i=0; i<elements; i++){
+        mat[i] /= sum;
+    }
+}
+
 
 double* mat_transpose(double* mat, int rows, int cols){
     double* result = (double*)malloc(rows*cols*sizeof(double));
@@ -62,49 +86,21 @@ double* random_mat(int elements){
     return result;
 }
 
-double* mat_relu(double* mat, int rows, int cols){
-    double* result = (double*)malloc(rows*cols*sizeof(double));
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            result[i*cols+j] = relu(mat[i*cols+j]);
-        }
-    }
-    return result;
-}
-
-double* mat_relu_gr(double* mat, int rows, int cols){
-    double* result = (double*)malloc(rows*cols*sizeof(double));
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            result[i*cols+j] = relu_gr(mat[i*cols+j]);
-        }
-    }
-    return result;
-}
-
 // gaussian normalisation
-double* mat_norm(double* mat, int rows, int cols){
-    double* result = (double*)malloc(rows*cols*sizeof(double));
+void mat_norm(double* mat, int elements){
     double mean = 0;
     double std = 0;
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            mean += mat[i*cols+j];
-        }
+    for(int i=0; i<elements; i++){
+        mean += mat[i];
     }
-    mean = mean/(rows*cols);
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            std += pow(mat[i*cols+j]-mean,2);
-        }
+    mean /= elements;
+    for(int i=0; i<elements; i++){
+        std += (mat[i]-mean)*(mat[i]-mean);
     }
-    std = sqrt(std/(rows*cols));
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            result[i*cols+j] = (mat[i*cols+j]-mean)/std;
-        }
+    std = sqrt(std/elements);
+    for(int i=0; i<elements; i++){
+        mat[i] = (mat[i]-mean)/std;
     }
-    return result;
 }
 
 double* mat_ones(int rows, int cols){
@@ -117,7 +113,7 @@ double* mat_ones(int rows, int cols){
     return result;
 }
 
-
+// Fixed conv2d_mul with correct indexing
 double* conv2d_mul(double* mat, double* kernel, int rows, int cols, int kernel_size){
     double* result = (double*)malloc((rows-kernel_size+1)*(cols-kernel_size+1)*sizeof(double));
     for(int i=0; i<rows-kernel_size+1; i++){
@@ -125,7 +121,7 @@ double* conv2d_mul(double* mat, double* kernel, int rows, int cols, int kernel_s
             result[i*(cols-kernel_size+1)+j] = 0;
             for(int k=0; k<kernel_size; k++){
                 for(int l=0; l<kernel_size; l++){
-                    result[i*(cols-kernel_size+1)+j] += mat[i*(cols-kernel_size+1)+j+k*cols+l]*kernel[k*kernel_size+l];
+                    result[i*(cols-kernel_size+1)+j] += mat[(i+k)*cols+(j+l)]*kernel[k*kernel_size+l];
                 }
             }
         }
@@ -133,15 +129,18 @@ double* conv2d_mul(double* mat, double* kernel, int rows, int cols, int kernel_s
     return result;
 }
 
-double* conv3d_mul(double* mat, double* kernel, int rows, int cols, int channel, int kernel_size){
+// Fixed conv3d_mul with correct indexing for multi-channel data
+double* conv3d_mul(double* mat, double* kernel, int rows, int cols, int channels, int kernel_size){
     double* result = (double*)malloc((rows-kernel_size+1)*(cols-kernel_size+1)*sizeof(double));
     for(int i=0; i<rows-kernel_size+1; i++){
         for(int j=0; j<cols-kernel_size+1; j++){
             result[i*(cols-kernel_size+1)+j] = 0;
-            for(int k=0; k<kernel_size; k++){
-                for(int l=0; l<kernel_size; l++){
-                    for(int m=0; m<channel; m++){
-                        result[i*(cols-kernel_size+1)+j] += mat[i*(cols-kernel_size+1)+j+k*cols+l+cols*rows*m]*kernel[k*kernel_size+l+m*kernel_size*kernel_size];
+            for(int c=0; c<channels; c++){
+                for(int k=0; k<kernel_size; k++){
+                    for(int l=0; l<kernel_size; l++){
+                        result[i*(cols-kernel_size+1)+j] += 
+                            mat[c*rows*cols + (i+k)*cols + (j+l)] * 
+                            kernel[c*kernel_size*kernel_size + k*kernel_size + l];
                     }
                 }
             }
@@ -164,23 +163,38 @@ int* conv2d_mul_int(int* mat, int* kernel, int rows, int cols, int kernel_size){
     }
     return result;
 }
-
-double* maxpool2d(double* mat, int rows, int cols, int pool_size, int stride){
-    int new_rows = (rows-pool_size)/stride+1;
-    int new_cols = (cols-pool_size)/stride+1;
-    double* result = (double*)malloc(new_rows*new_cols*sizeof(double));
-    for(int i=0; i<new_rows; i++){
-        for(int j=0; j<new_cols; j++){
-            result[i*new_cols+j] = 0;
-            for(int k=0; k<pool_size; k++){
-                for(int l=0; l<pool_size; l++){
-                    result[i*new_cols+j] = fmax(result[i*new_cols+j],mat[(i*stride+k)*cols+j*stride+l]);
+void maxpool2d(double* mat, int rows, int cols, int pool_size, int stride, double* result) {
+    // Validate input parameters
+    if (mat == NULL || result == NULL || rows <= 0 || cols <= 0 || 
+        pool_size <= 0 || stride <= 0 || pool_size > rows || pool_size > cols) {
+        return;  // Early return on invalid input
+    }
+    
+    int new_rows = (rows - pool_size) / stride + 1;
+    int new_cols = (cols - pool_size) / stride + 1;
+    
+    // Ensure that we have at least one output element
+    if (new_rows <= 0 || new_cols <= 0) {
+        return;
+    }
+    
+    for (int i = 0; i < new_rows; i++) {
+        for (int j = 0; j < new_cols; j++) {
+            double max_val = -INFINITY;  // Initialize to negative infinity
+            for (int k = 0; k < pool_size; k++) {
+                for (int l = 0; l < pool_size; l++) {
+                    double val = mat[(i * stride + k) * cols + j * stride + l];
+                    if (val > max_val) {
+                        max_val = val;
+                    }
                 }
             }
+            result[i * new_cols + j] = max_val;
         }
     }
-    return result;
 }
+
+
 
 double* norm_image(unsigned char* mat, int length){
     double* result = (double*)malloc(length*sizeof(double));
@@ -197,8 +211,3 @@ unsigned char* denorm_image(double* mat, int length){
     }
     return result;
 }
-
-
-
-
-

@@ -3,12 +3,15 @@
 #include <string.h>
 #include "utils.h"
 #include "bmp.h"
+#include "cnn.h"
+#include "model.h"
 
 #define IMAGE_WIDTH 32
 #define IMAGE_HEIGHT 32
 #define CHANNELS 3
 #define IMAGE_SIZE (IMAGE_WIDTH * IMAGE_HEIGHT * CHANNELS)
-#define NUM_IMAGES 10000 
+#define NUM_IMAGES 10000
+#define BATCH_SIZE 50
 
 typedef struct {
     unsigned char label;
@@ -16,45 +19,43 @@ typedef struct {
 } ImageC;
 
 typedef struct {
-    double label;
+    int label;
     double pixels[IMAGE_SIZE];
 } ImageF;
 
 int main() {
     FILE *file;
-    ImageC *images;
-    ImageF *images_f;
     char filename[100];
-    
-    images = (ImageC*)malloc(NUM_IMAGES * sizeof(ImageC));
-    if (images == NULL) {
-        printf("Memory allocation failed\n");
-        return 1;
-    }
     
     file = fopen("dataset/data_batch_1.bin", "rb");
     if (file == NULL) {
-        printf("Error opening file!");
-        free(images);
+        printf("Error opening file!\n");
         return 1;
     }
-
-    size_t items_read = fread(images, sizeof(ImageC), NUM_IMAGES, file);
-    printf("Read %zu images from file\n", items_read);
     
-    fclose(file);
+    ImageF *imagesF = (ImageF*)malloc(NUM_IMAGES * sizeof(ImageF));
+    ImageC *imagesC = (ImageC*)malloc(BATCH_SIZE * sizeof(ImageC));
 
-    images_f = (ImageF*)malloc(NUM_IMAGES * sizeof(ImageF));
+    for (int i = 0; i < NUM_IMAGES; i++) {
+        fread(&imagesC, sizeof(ImageC), BATCH_SIZE, file);
+        imagesF[i].label = (int)imagesC[0].label;
+        for (int j = 0; j < IMAGE_SIZE; j++) {
+            imagesF[i].pixels[j] = (double)imagesC[0].pixels[j] / 255.0;
+        }
+    }
+    
+    ModelResult *model_result = ModelParams();
+    
     for(int i=0; i<NUM_IMAGES; i++){
-        images_f[i].label = (double)images[i].label;
-        memcpy(images_f[i].pixels, norm_image(images[i].pixels, IMAGE_SIZE), IMAGE_SIZE * sizeof(double));
+        model(imagesF[i].pixels, model_result);
+        
     }
 
-    
 
+    free(imagesC);
+    free(imagesF);
+    free(model_result);
 
-    
-    
-    free(images);
+    fclose(file);
     return 0;
 }
