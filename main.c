@@ -18,10 +18,6 @@ typedef struct {
     unsigned char pixels[IMAGE_SIZE];
 } ImageC;
 
-typedef struct {
-    int label;
-    double pixels[IMAGE_SIZE];
-} ImageF;
 
 int main() {
     FILE *file;
@@ -52,43 +48,56 @@ int main() {
     
 
     // forward pass
-    ModelResult *model_result = ModelParams();
-    Tensor loss = {0, 1};
-    for(int i = 0; i < BATCH_SIZE; i++) {
-        model(imagesF[i].pixels, model_result);
-        loss.value += neg_log_likelihood(model_result->out, imagesF[i].label, 10, loss.grad/BATCH_SIZE).value;
-        backward(model_result);
-        printf("Linear3 Weight grad: ");
-        for(int i = 0; i < 10; i++) {
-            printf("%f ", model_result->linear3->weights[i].grad);
-        }
-        printf("\n");
-        printf("Linear3 Bias grad: ");
-        for(int i = 0; i < 10; i++) {
-            printf("%f ", model_result->linear3->bias[i].grad);
-        }
-        printf("\n");
-        printf("Linear2 Out grad: ");
-        for(int i = 0; i < 10; i++) {
-            printf("%f ", model_result->linear2->out[i].grad);
-        }
-        // printf("\nOut Grad: ");
-        // for(int i=0; i<10; i++){
-        //     printf("%f ", model_result->out[i].grad);
-        // }
-        printf("\n");
-        printf("\n");
-    }
-    loss.value /= BATCH_SIZE;
-    printf("Loss: %f\n", loss.value);
+    // ModelResult *model_result = ModelParams();
+    // Tensor loss = {0, 1};
 
 
+
+    // for(int i = 0; i < BATCH_SIZE; i++) {
+    //     model(imagesF[i].pixels, model_result);
+    //     loss.value += neg_log_likelihood(model_result->out, imagesF[i].label, 10, loss.grad/BATCH_SIZE).value;
+    //     backward(model_result);
+    //     update_params(model_result, 0.1);
+    //     // printf("Linear3 Out grad: ");
+    //     // for(int i = 0; i < 10; i++){
+    //     //     printf("%f ", model_result->out[i].grad);
+    //     // }
+    //     // printf("\n");
+    //     // printf("Linear3 Weight grad: ");
+    //     // for(int i = 0; i < 10; i++) {
+    //     //     printf("%f ", model_result->linear3->weights[i].grad);
+    //     // }
+    //     // printf("\n");
+    //     // printf("Linear3 Bias grad: ");
+    //     // for(int i = 0; i < 10; i++) {
+    //     //     printf("%f ", model_result->linear3->bias[i].grad);
+    //     // }
+    //     // printf("\n");
+    //     // printf("Linear2 Out grad: ");
+    //     // for(int i = 0; i < 10; i++) {
+    //     //     printf("%f ", model_result->linear2->out[i].value);
+    //     // }
+    //     // printf("\n");
+    //     // printf("Linear2 Out grad: ");
+    //     // for(int i = 0; i < 10; i++) {
+    //     //     printf("%f ", model_result->linear2->out[i].grad);
+    //     // }
+    //     // printf("\nNorm Out Grad: ");
+    //     // for(int i=0; i<10; i++){
+    //     //     printf("%f ", model_result->conv2norm[i].grad);
+    //     // }
+    //     // printf("\n");
+    //     // printf("\n");
+    // }
+    // loss.value /= BATCH_SIZE;
+    // printf("Loss: %f\n", loss.value);
+
+    train_model(imagesF, 10, IMAGE_SIZE, BATCH_SIZE, 0.1);
 
 
     // free memory
     free(imagesC);
     free(imagesF);
-    free(model_result);
 
     fclose(file);
     return 0;

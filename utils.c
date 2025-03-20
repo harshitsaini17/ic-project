@@ -38,6 +38,14 @@ void relu_mat(Tensor* mat, int elements){
     }
 }
 
+void relu_backward(Tensor* mat, int elements){
+    for(int i=0; i<elements; i++){
+        if(mat[i].value<=0){
+            mat[i].grad = 0;
+        }
+    }
+}
+
 void mat_softmax(Tensor* mat, int elements, Tensor* out){
     double max_val = -INFINITY;
     for(int i=0; i<elements; i++){
@@ -70,11 +78,12 @@ void softmax_backward(Tensor* mat, int elements, Tensor* out){
     */
    double sum = 0;
    for(int i=0; i<elements; i++){
-       sum += out[i].value * out[i].grad;
+        sum += out[i].value * out[i].grad;
    }
    
    for(int j=0; j<elements; j++){
-       mat[j].grad += out[j].value * (out[j].grad - sum);
+        mat[j].prev_grad = mat[j].grad;
+        mat[j].grad += out[j].value * (out[j].grad - sum);
    }
     
 }
@@ -84,6 +93,7 @@ Tensor* random_mat(int elements){
     for(int i=0; i<elements; i++){
         result[i].value = (double)rand()/RAND_MAX;
         result[i].grad = 0;
+        result[i].prev_grad = 0;
     }
     return result;
 }
@@ -94,6 +104,7 @@ Tensor neg_log_likelihood(Tensor* mat, int label, int elements, double chain_gra
 
     // mat grad
     for(int i=0; i<elements; i++){
+        mat[i].prev_grad = mat[i].grad;
         if(i==label){
             mat[i].grad += -1/(mat[i].value+0.001)*chain_grad;
         }else{
@@ -105,7 +116,8 @@ Tensor neg_log_likelihood(Tensor* mat, int label, int elements, double chain_gra
 }
 
 // gaussian normalisation
-void mat_norm(Tensor* mat, int elements){
+Tensor* mat_norm(Tensor* mat, int elements){
+    Tensor* result = (Tensor*)malloc(elements*sizeof(Tensor));
     double mean = 0;
     double std = 0;
     for(int i=0; i<elements; i++){
@@ -117,9 +129,38 @@ void mat_norm(Tensor* mat, int elements){
     }
     std = sqrt(std/elements);
     for(int i=0; i<elements; i++){
-        mat[i].value = (mat[i].value-mean)/std;
+        result[i].value = (mat[i].value-mean)/std;
     }
+    return result;
 }
+
+void norm_backward(Tensor* mat, int elements, Tensor* out){
+    /*
+    formula:
+        n_i = (mat[i].value - mean)/std;
+        mean = Σmat[i].value/elements
+        std = sqrt(Σ(mat[i].value-mean)^2/elements)
+    gradient:
+        ∂n_i/∂mat[i].value = ((N-1)-n_i^2)/(N*std)
+    */
+   double mean = 0;
+   double std = 0;
+   for(int i=0; i<elements; i++){
+        mean += mat[i].value;
+   }
+   mean /= elements;
+   for(int i=0; i<elements; i++){
+        std += (mat[i].value-mean)*(mat[i].value-mean);
+   }    
+   std = sqrt(std/elements);
+
+   for(int i=0; i<elements; i++){
+        mat[i].prev_grad = mat[i].grad;
+        mat[i].grad += (elements-1-out[i].value*out[i].value)/(elements*std)*(out[i].grad-out[i].prev_grad);
+   }
+
+}
+
 
 // Fixed conv3d_mul with correct indexing for multi-channel data
 Tensor* conv3d_mul(Tensor* mat, Tensor* kernel, int rows, int cols, int channels, int kernel_size){
@@ -162,6 +203,40 @@ void maxpool2d(Tensor* mat, int rows, int cols, int pool_size, int stride, Tenso
     }
 }
 
+void maxpool_backward(Tensor* input, Tensor* output_grad, int rows, int cols, int channels, int pool_size, int stride) {
+    int out_rows = (rows - pool_size) / stride + 1;
+    int out_cols = (cols - pool_size) / stride + 1;
+    for (int c = 0; c < channels; c++) {
+        for (int i = 0; i < out_rows; i++) {
+            for (int j = 0; j < out_cols; j++) {
+                int out_idx = i * out_cols + j;
+                double max_val = -INFINITY;
+                int max_i = 0, max_j = 0;
+                
+                for (int k = 0; k < pool_size; k++) {
+                    for (int l = 0; l < pool_size; l++) {
+                        int r = i * stride + k;
+                        int col = j * stride + l;
+                        
+                        if (r < rows && col < cols) {
+                            int in_idx = r * cols + col;
+                            if (input[c * rows * cols + in_idx].value > max_val) {
+                                max_val = input[c * rows * cols + in_idx].value;
+                                max_i = r;
+                                max_j = col;
+                            }
+                        }
+                    }
+                }
+                int max_idx = max_i * cols + max_j;
+                input[c * rows * cols + max_idx].prev_grad = input[c * rows * cols + max_idx].grad;
+                input[c * rows * cols + max_idx].grad += (output_grad[c * out_rows * out_cols + out_idx].grad - output_grad[c * out_rows * out_cols + out_idx].prev_grad);
+            }
+        }
+    }
+}
+
+
 
 
 Tensor* norm_image(unsigned char* mat, int length){
@@ -179,3 +254,5 @@ unsigned char* denorm_image(Tensor* mat, int length){
     }
     return result;
 }
+
+
