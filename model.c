@@ -106,17 +106,17 @@ void backward(ModelResult* result){
     norm_backward(result->linear1->out, 120, result->l1norm);
     relu_backward(result->linear1->out, 120);
 
-    int flat_size = 16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2;
+    // int flat_size = 16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2;
 
-    linear_backward(result->pool2, flat_size, 120, result->linear1);
-    maxpool_backward(result->conv2norm, result->pool2, (IMAGE_HEIGHT-4)/2-4, (IMAGE_WIDTH-4)/2-4, 16, 2, 2);
-    norm_backward(result->conv2->out, 16*((IMAGE_HEIGHT-4)/2-4)*((IMAGE_WIDTH-4)/2-4), result->conv2norm);
+    // linear_backward(result->pool2, flat_size, 120, result->linear1);
+    // maxpool_backward(result->conv2norm, result->pool2, (IMAGE_HEIGHT-4)/2-4, (IMAGE_WIDTH-4)/2-4, 16, 2, 2);
+    // norm_backward(result->conv2->out, 16*((IMAGE_HEIGHT-4)/2-4)*((IMAGE_WIDTH-4)/2-4), result->conv2norm);
 
-    conv2d_backward(result->pool1, (IMAGE_HEIGHT-4)/2, (IMAGE_WIDTH-4)/2, 6, 16, 5, result->conv2);
-    maxpool_backward(result->conv1norm, result->pool1, IMAGE_HEIGHT-4, IMAGE_WIDTH-4,6, 2, 2);
-    norm_backward(result->conv1norm, 6*(IMAGE_HEIGHT-4)*(IMAGE_WIDTH-4), result->pool1);
+    // conv2d_backward(result->pool1, (IMAGE_HEIGHT-4)/2, (IMAGE_WIDTH-4)/2, 6, 16, 5, result->conv2);
+    // maxpool_backward(result->conv1norm, result->pool1, IMAGE_HEIGHT-4, IMAGE_WIDTH-4,6, 2, 2);
+    // norm_backward(result->conv1norm, 6*(IMAGE_HEIGHT-4)*(IMAGE_WIDTH-4), result->pool1);
 
-    conv2d_backward(result->pixel, IMAGE_HEIGHT, IMAGE_WIDTH, CHANNELS, 6, 5, result->conv1);
+    // conv2d_backward(result->pixel, IMAGE_HEIGHT, IMAGE_WIDTH, CHANNELS, 6, 5, result->conv1);
 
 }
 

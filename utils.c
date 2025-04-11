@@ -89,6 +89,7 @@ void softmax_backward(Tensor* mat, int elements, Tensor* out){
 }
 
 Tensor* random_mat(int elements){
+    srand(10);
     Tensor* result = (Tensor*)malloc(elements*sizeof(Tensor));
     for(int i=0; i<elements; i++){
         result[i].value = (double)rand()/RAND_MAX;

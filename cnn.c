@@ -63,7 +63,63 @@ void linear_backward(Tensor* mat, int in_features, int out_features, LinearResul
 
 }
 
+// print model parameters
+void print_model_parameters(ModelResult* result){
+    // printf("Conv1 Weights: ");
+    // for(int i=0; i<5*5*3*6; i++){
+    //     printf("%f ", result->conv1->weights[i].grad);
+    // }
+    // printf("\n");
+    // printf("Conv1 Bias: ");
+    // for(int i=0; i<6; i++){
+    //     printf("%f ", result->conv1->bias[i].grad);
+    // }
+    printf("\n");
+    printf("Conv2 Weights: ");
+    for(int i=0; i<5*5*6*16; i++){
+        printf("%f ", result->conv2->weights[i].grad);
+    }
+    printf("\n");
+    printf("Conv2 Bias: ");
+    for(int i=0; i<16; i++){
+        printf("%f ", result->conv2->bias[i].grad);
+    }
+    // printf("\n");
+    // printf("Linear1 Weights: ");
+    // for(int i=0; i<120*16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2; i++){
+    //     printf("%f ", result->linear1->weights[i].grad);
+    // }
+    // printf("\n");
+    // printf("Linear1 Bias: ");
+    // for(int i=0; i<120; i++){
+    //     printf("%f ", result->linear1->bias[i].grad);
+    // }
+    // printf("\n");
+    // printf("Linear2 Weights: ");
+    // for(int i=0; i<84*120; i++){
+    //     printf("%f ", result->linear2->weights[i].grad);
+    // }
+    // printf("\n");
+    // printf("Linear2 Bias: ");
+    // for(int i=0; i<84; i++){
+    //     printf("%f ", result->linear2->bias[i].grad);
+    // }
+    // printf("\n");
+    // printf("Linear3 Weights: ");
+    // for(int i=0; i<10*84; i++){
+    //     printf("%f ", result->linear3->weights[i].grad);
+    // }
+    // printf("\n");
+    printf("Linear3 Bias: ");
+    for(int i=0; i<10; i++){
+        printf("%f ", result->linear3->bias[i].grad);
+    }
+    printf("\n");
+}
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void conv2d_backward(Tensor* input, int rows, int cols, int in_channel, int out_channel, int kernel_size, ConvResult* result) {
     // Calculate output dimensions
     int out_rows = rows - kernel_size + 1;
@@ -219,8 +275,7 @@ void update_params(ModelResult* result, float learning_rate) {
     }
 }
 
-void train_model(ImageF* imagesF, int num_epochs, int num_images, int batch_size, float learning_rate) {
-    ModelResult* model_result = ModelParams();
+void train_model(ImageF* imagesF, int num_epochs, int num_images, int batch_size, float learning_rate, ModelResult* model_result) {
     
     for (int epoch = 0; epoch < num_epochs; epoch++) {
         float total_loss = 0.0;
@@ -230,17 +285,17 @@ void train_model(ImageF* imagesF, int num_epochs, int num_images, int batch_size
             Tensor loss;
             loss.value = 0.0;
             loss.grad = 1.0;
-            
+            reset_gradients(model_result);
             for (int i = 0; i < batch_size; i++) {
                 int img_index = batch * batch_size + i;
                 model(imagesF[img_index].pixels, model_result);
-                loss.value += neg_log_likelihood(model_result->out, imagesF[img_index].label, 10, loss.grad/batch_size).value;
+                loss.value += neg_log_likelihood(model_result->out, imagesF[img_index].label, 10, 1.0/batch_size).value;
                 backward(model_result);
             }
             
-            update_params(model_result, learning_rate);
-            
+            printf("Batch %d, Loss: %f\n", batch + 1, loss.value);
             total_loss += loss.value;
+            update_params(model_result, learning_rate);
         }
         
         float avg_loss = total_loss / num_batches;
@@ -249,5 +304,130 @@ void train_model(ImageF* imagesF, int num_epochs, int num_images, int batch_size
     
     // Free allocated memory
     free(model_result);
+}
+
+void reset_tensor_gradients(Tensor* tensors, int size) {
+    for (int i = 0; i < size; i++) {
+        tensors[i].grad = 0.0;
+    }
+}
+
+void reset_gradients(ModelResult* model) {
+    
+    // Reset conv1 layer gradients
+    reset_tensor_gradients(model->conv1->weights, 5*5*3*6);
+    reset_tensor_gradients(model->conv1->bias, 6);
+    int conv1_out_size = 6*(IMAGE_HEIGHT-4)*(IMAGE_WIDTH-4);
+    reset_tensor_gradients(model->conv1->out, conv1_out_size);
+    reset_tensor_gradients(model->conv1norm, conv1_out_size);
+    
+    // Reset pool1 gradients
+    int pool1_size = 6*(IMAGE_HEIGHT-4)/2*(IMAGE_WIDTH-4)/2;
+    reset_tensor_gradients(model->pool1, pool1_size);
+    
+    // Reset conv2 layer gradients
+    int conv2_weights_size = 5*5*6*16;
+    reset_tensor_gradients(model->conv2->weights, conv2_weights_size);
+    reset_tensor_gradients(model->conv2->bias, 16);
+    int conv2_out_size = 16*((IMAGE_HEIGHT-4)/2-4)*((IMAGE_WIDTH-4)/2-4);
+    reset_tensor_gradients(model->conv2->out, conv2_out_size);
+    reset_tensor_gradients(model->conv2norm, conv2_out_size);
+    
+    // Reset pool2 gradients
+    int pool2_size = 16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2;
+    reset_tensor_gradients(model->pool2, pool2_size);
+    
+    // Reset linear1 layer gradients
+    int linear1_weights_size = 120*16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2;
+    reset_tensor_gradients(model->linear1->weights, linear1_weights_size);
+    reset_tensor_gradients(model->linear1->bias, 120);
+    reset_tensor_gradients(model->linear1->out, 120);
+    reset_tensor_gradients(model->l1norm, 120);
+    
+    // Reset linear2 layer gradients
+    int linear2_weights_size = 84*120;
+    reset_tensor_gradients(model->linear2->weights, linear2_weights_size);
+    reset_tensor_gradients(model->linear2->bias, 84);
+    reset_tensor_gradients(model->linear2->out, 84);
+    reset_tensor_gradients(model->l2norm, 84);
+    
+    // Reset linear3 layer gradients
+    int linear3_weights_size = 10*84;
+    reset_tensor_gradients(model->linear3->weights, linear3_weights_size);
+    reset_tensor_gradients(model->linear3->bias, 10);
+    reset_tensor_gradients(model->linear3->out, 10);
+    reset_tensor_gradients(model->out, 10);
+    
+    // Reset pixel tensor gradients if it exists
+    if (model->pixel != NULL) {
+        reset_tensor_gradients(model->pixel, IMAGE_SIZE);
+    }
+}
+
+
+// Initialize a new SGD optimizer
+SGDOptimizer* sgd_init(float learning_rate, float momentum, float weight_decay) {
+    SGDOptimizer* optimizer = (SGDOptimizer*)malloc(sizeof(SGDOptimizer));
+    optimizer->learning_rate = learning_rate;
+    optimizer->momentum = momentum;
+    optimizer->weight_decay = weight_decay;
+    return optimizer;
+}
+
+// Update a single tensor using SGD with momentum
+void sgd_update_tensor(SGDOptimizer* optimizer, Tensor* param, int size) {
+    for(int i = 0; i < size; i++) {
+        // Apply weight decay
+        if(optimizer->weight_decay > 0) {
+            param[i].grad += optimizer->weight_decay * param[i].value;
+        }
+        
+        // Apply momentum if enabled
+        if(optimizer->momentum > 0) {
+            float update = optimizer->learning_rate * param[i].grad + 
+                           optimizer->momentum * param[i].prev_grad;
+            param[i].prev_grad = update;
+            param[i].value -= update;
+        } else {
+            // Standard SGD update
+            param[i].value -= optimizer->learning_rate * param[i].grad;
+        }
+        
+        // Reset gradient for next batch
+        param[i].grad = 0;
+    }
+}
+
+// Update all model parameters using SGD
+void sgd_step(SGDOptimizer* optimizer, ModelResult* model) {
+    // Update conv1 parameters
+    int conv1_weights_size = 5*5*3*6;
+    sgd_update_tensor(optimizer, model->conv1->weights, conv1_weights_size);
+    sgd_update_tensor(optimizer, model->conv1->bias, 6);
+    
+    // Update conv2 parameters
+    int conv2_weights_size = 5*5*6*16;
+    sgd_update_tensor(optimizer, model->conv2->weights, conv2_weights_size);
+    sgd_update_tensor(optimizer, model->conv2->bias, 16);
+    
+    // Update linear1 parameters
+    int linear1_weights_size = 120*16*((IMAGE_HEIGHT-4)/2-4)/2*((IMAGE_WIDTH-4)/2-4)/2;
+    sgd_update_tensor(optimizer, model->linear1->weights, linear1_weights_size);
+    sgd_update_tensor(optimizer, model->linear1->bias, 120);
+    
+    // Update linear2 parameters
+    int linear2_weights_size = 84*120;
+    sgd_update_tensor(optimizer, model->linear2->weights, linear2_weights_size);
+    sgd_update_tensor(optimizer, model->linear2->bias, 84);
+    
+    // Update linear3 parameters
+    int linear3_weights_size = 10*84;
+    sgd_update_tensor(optimizer, model->linear3->weights, linear3_weights_size);
+    sgd_update_tensor(optimizer, model->linear3->bias, 10);
+}
+
+// Free optimizer memory
+void sgd_free(SGDOptimizer* optimizer) {
+    free(optimizer);
 }
 
