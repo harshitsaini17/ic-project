@@ -12,7 +12,7 @@
  
  int main(int argc, char *argv[]) {
      // Initialize HTML context with output file, language, and title
-     html_context* ctx = html_init_file("simple_output.html", "en", "Simple HTML Example");
+     html_context* ctx = html_init_file("simple_output.html", "Simple HTML Example");
      if (!ctx) {
          fprintf(stderr, "Failed to initialize HTML context: %s\n", html_get_last_error());
          return 1;

@@ -45,7 +45,6 @@
      html_element* current;        /* Current element being worked on */
      id_map* element_map;          /* Hash map for ID lookups */
      FILE* output_file;            /* File pointer for output file */
-     char* language;               /* Language attribute for html tag */
      char* title;                  /* Title of the HTML document */
      int indent_level;             /* Current indentation level */
  } html_context;
@@ -175,7 +174,7 @@
  /**
   * @brief Initialize an HTML context with file output
   */
- html_context* html_init_file(const char* filename, const char* lang, const char* title);
+ html_context* html_init_file(const char* filename, const char* title);
  
  /**
   * @brief Free all resources used by the HTML context
