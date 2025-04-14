@@ -5,9 +5,6 @@
 #include <stdarg.h>
 
 
-extern int html_create_document_structure(html_context *ctx);
-extern int html_render_element(html_context *ctx, html_element *element);
-
 html_context *html_init_string(const char *title)
 {
     html_clear_error();
@@ -103,7 +100,7 @@ char *html_render_to_string(html_context *ctx)
         return NULL;
     }
 
-    int read_size = fread(html_string, 1, size, temp_file);
+    long read_size = fread(html_string, 1, size, temp_file);
     fclose(temp_file);
 
     if (read_size != (int)size)
@@ -254,9 +251,4 @@ int html_navigate_to_head(html_context *ctx)
 
     ctx->current = head;
     return 0;
-}
-
-const char *html_get_last_error(void)
-{
-    return html_get_error();
 }

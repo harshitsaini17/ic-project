@@ -24,18 +24,6 @@ const char *html_get_error()
 void html_clear_error() { error_message[0] = '\0'; }
 
 //////////////string utilities functions///////////////////////
-char *html_strdup(const char *str)
-{
-    int len = strlen(str);
-    char *new_str = (char *)malloc(len + 1);
-    if (!new_str)
-    {
-        html_set_error("memory allocation failed for string duplication");
-        return NULL;
-    }
-    memcpy(new_str, str, len + 1);
-    return new_str;
-}
 
 char *html_strcat(char *dest, const char *src)
 {
