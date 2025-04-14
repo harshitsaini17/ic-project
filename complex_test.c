@@ -1,11 +1,3 @@
-/**
- * @file complex_test.c
- * @brief Comprehensive test of the HTML generation library
- *
- * This example demonstrates advanced features of the HTML generation library
- * including tables, forms, JavaScript integration, complex nesting, and
- * programmatic content generation.
- */
 
  #include <stdio.h>
  #include <stdlib.h>
@@ -22,10 +14,9 @@
  
  int main(int argc, char *argv[]) {
      printf("HTML Generation Library - Complex Test\n");
-     printf("Version: %s\n\n", html_get_version());
      
      // Initialize HTML context with output file
-     html_context* ctx = html_init_file("complex_output.html", "en", "Advanced HTML Example");
+     html_context* ctx = html_init_file("complex_output.html", "Advanced HTML Example");
      if (!ctx) {
          handle_error("initialize HTML context");
          return 1;

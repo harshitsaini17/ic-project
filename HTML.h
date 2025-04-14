@@ -353,10 +353,6 @@
   */
  int html_add_content(html_context* ctx, const char* content);
  
- /**
-  * @brief Get the library version as a string
-  */
- const char* html_get_version(void);
 
  /**
  * @brief Begin a specific tag and set it as current

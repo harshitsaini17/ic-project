@@ -202,7 +202,7 @@ int html_add_class(html_element *element, const char *classname)
     if (current_class)
     {
 
-        size_t total_len = strlen(current_class) + strlen(classname) + 2;
+        int total_len = strlen(current_class) + strlen(classname) + 2;
         new_class = (char *)malloc(total_len);
         if (!new_class)
         {

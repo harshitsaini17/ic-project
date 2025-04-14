@@ -4,19 +4,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define HTML_GEN_VERSION_MAJOR 1
-#define HTML_GEN_VERSION_MINOR 0
-#define HTML_GEN_VERSION_PATCH 0
-
-const char *html_get_version(void)
-{
-    static char version[16];
-    snprintf(version, sizeof(version), "%d.%d.%d",
-             HTML_GEN_VERSION_MAJOR,
-             HTML_GEN_VERSION_MINOR,
-             HTML_GEN_VERSION_PATCH);
-    return version;
-}
 
 extern int html_create_document_structure(html_context *ctx);
 extern int html_render_element(html_context *ctx, html_element *element);
@@ -116,10 +103,10 @@ char *html_render_to_string(html_context *ctx)
         return NULL;
     }
 
-    size_t read_size = fread(html_string, 1, size, temp_file);
+    int read_size = fread(html_string, 1, size, temp_file);
     fclose(temp_file);
 
-    if (read_size != (size_t)size)
+    if (read_size != (int)size)
     {
         free(html_string);
         html_set_error("Failed to read rendered HTML");

@@ -26,7 +26,7 @@ void html_clear_error() { error_message[0] = '\0'; }
 //////////////string utilities functions///////////////////////
 char *html_strdup(const char *str)
 {
-    size_t len = strlen(str);
+    int len = strlen(str);
     char *new_str = (char *)malloc(len + 1);
     if (!new_str)
     {
@@ -39,9 +39,9 @@ char *html_strdup(const char *str)
 
 char *html_strcat(char *dest, const char *src)
 {
-    size_t dest_len = strlen(dest);
-    size_t src_len = strlen(src);
-    size_t new_len = dest_len + src_len;
+    int dest_len = strlen(dest);
+    int src_len = strlen(src);
+    int new_len = dest_len + src_len;
     char *new_str = (char *)realloc(dest, new_len + 1);
     if (!new_str)
         return dest;
@@ -54,9 +54,9 @@ char *html_escape_string(const char *str)
 {
     if (!str)
         return NULL;
-    size_t len = strlen(str), new_len = len;
+    int len = strlen(str), new_len = len;
 
-    for (size_t i = 0; i < len; i++)
+    for (int i = 0; i < len; i++)
     {
         switch (str[i])
         {
@@ -87,8 +87,8 @@ char *html_escape_string(const char *str)
         return NULL;
     }
 
-    size_t j = 0;
-    for (size_t i = 0; i < len; i++)
+    int j = 0;
+    for (int i = 0; i < len; i++)
     {
         switch (str[i])
         {
@@ -144,7 +144,7 @@ char *html_extract_attribute(const char *attributes, const char *name)
 {
     if (!attributes || !name)
         return NULL;
-    size_t name_len = strlen(name);
+    int name_len = strlen(name);
     const char *attr_start = attributes;
     while ((attr_start = strstr(attr_start, name)) != NULL)
     {
@@ -169,7 +169,7 @@ char *html_extract_attribute(const char *attributes, const char *name)
 
                     if (value_end)
                     {
-                        size_t value_len = value_end - attr_start;
+                        int value_len = value_end - attr_start;
                         char *value = malloc(value_len + 1);
 
                         if (!value)
@@ -189,7 +189,7 @@ char *html_extract_attribute(const char *attributes, const char *name)
                     while (*value_end && !isspace((unsigned char)*value_end))
                         value_end++;
 
-                    size_t value_len = value_end - attr_start;
+                    int value_len = value_end - attr_start;
                     char *value = malloc(value_len + 1);
 
                     if (!value)
@@ -220,10 +220,10 @@ char *html_add_attribute(const char *attributes, const char *name, const char *v
     if (!name || !value)
         return html_strdup(attributes ? attributes : "");
 
-    size_t attr_len = attributes ? strlen(attributes) : 0;
-    size_t name_len = strlen(name);
-    size_t value_len = strlen(value);
-    size_t new_attr_len = attr_len + name_len + value_len + 4;
+    int attr_len = attributes ? strlen(attributes) : 0;
+    int name_len = strlen(name);
+    int value_len = strlen(value);
+    int new_attr_len = attr_len + name_len + value_len + 4;
 
     char *new_attributes = (char *)malloc(new_attr_len + 1);
     if (!new_attributes)

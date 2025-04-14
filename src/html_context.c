@@ -207,18 +207,6 @@ int html_set_current_element(html_context *ctx, html_element *element)
     if (!ctx || !element)
         return -1;
 
-    html_element *current = element;
-    while (current->parent && current != ctx->root)
-    {
-        current = current->parent;
-    }
-
-    if (current != ctx->root)
-    {
-        html_set_error("Element does not belong to this context");
-        return -1;
-    }
-
     ctx->current = element;
     return 0;
 }
