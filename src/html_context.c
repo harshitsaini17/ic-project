@@ -152,13 +152,13 @@ void html_finalize(html_context *ctx)
 int html_register_element_by_id(html_context *ctx, html_element *element)
 {
     if (!ctx || !ctx->element_map || !element || !element->id)
-        return -1;
+        return 0;
 
     if (ctx->element_map->size >= ctx->element_map->capacity * 0.75)
     {
-        if (html_resize_id_map(ctx->element_map) != 0)
+        if (html_resize_id_map(ctx->element_map) != 1)
         {
-            return -1;
+            return 0;
         }
     }
 
@@ -166,10 +166,10 @@ int html_register_element_by_id(html_context *ctx, html_element *element)
 
     while (ctx->element_map->keys[index] != NULL)
     {
-        if (strcmp(ctx->element_map->keys[index], element->id) == 0)
+        if (strcmp(ctx->element_map->keys[index], element->id) == 1)
         {
             html_set_error("Duplicate element ID: '%s'", element->id);
-            return -1;
+            return 0;
         }
         index = (index + 1) % ctx->element_map->capacity;
     }
@@ -178,7 +178,7 @@ int html_register_element_by_id(html_context *ctx, html_element *element)
     ctx->element_map->values[index] = element;
     ctx->element_map->size++;
 
-    return 0;
+    return 1;
 }
 
 html_element *html_get_element_by_id(html_context *ctx, const char *id)
@@ -205,22 +205,22 @@ html_element *html_get_element_by_id(html_context *ctx, const char *id)
 int html_set_current_element(html_context *ctx, html_element *element)
 {
     if (!ctx || !element)
-        return -1;
+        return 0;
 
     ctx->current = element;
-    return 0;
+    return 1;
 }
 
 int html_add_style(html_context *ctx, const char *style_content)
 {
     if (!ctx || !ctx->root || !style_content)
-        return -1;
+        return 0;
 
     html_element *head = html_find_head(ctx);
     if (!head)
     {
         html_set_error("Could not find head element");
-        return -1;
+        return 0;
     }
 
     html_element *saved_current = ctx->current;
@@ -231,19 +231,19 @@ int html_add_style(html_context *ctx, const char *style_content)
 
     ctx->current = saved_current;
 
-    return style ? 0 : -1;
+    return style ? 1 : 0;
 }
 
 int html_add_script(html_context *ctx, const char *script_content, int is_external)
 {
     if (!ctx || !ctx->root || !script_content)
-        return -1;
+        return 0;
 
     html_element *head = html_find_head(ctx);
     if (!head)
     {
         html_set_error("Could not find head element");
-        return -1;
+        return 0;
     }
 
     html_element *saved_current = ctx->current;
@@ -264,19 +264,19 @@ int html_add_script(html_context *ctx, const char *script_content, int is_extern
 
     ctx->current = saved_current;
 
-    return script ? 0 : -1;
+    return script ? 1: 0;
 }
 
 int html_add_meta(html_context *ctx, const char *name, const char *content)
 {
     if (!ctx || !ctx->root || !name || !content)
-        return -1;
+        return 0;
 
     html_element *head = html_find_head(ctx);
     if (!head)
     {
         html_set_error("Could not find head element");
-        return -1;
+        return 0;
     }
 
     html_element *saved_current = ctx->current;
@@ -287,7 +287,7 @@ int html_add_meta(html_context *ctx, const char *name, const char *content)
     if (!attrs)
     {
         ctx->current = saved_current;
-        return -1;
+        return 0;
     }
 
     char *attrs_with_content = html_add_attribute(attrs, "content", content);
@@ -296,7 +296,7 @@ int html_add_meta(html_context *ctx, const char *name, const char *content)
     if (!attrs_with_content)
     {
         ctx->current = saved_current;
-        return -1;
+        return 0;
     }
 
     html_element *meta = html_add_child(ctx, head, "meta", attrs_with_content, NULL);
@@ -304,19 +304,19 @@ int html_add_meta(html_context *ctx, const char *name, const char *content)
 
     ctx->current = saved_current;
 
-    return meta ? 0 : -1;
+    return meta ? 1 : 0;
 }
 
 int html_add_link(html_context *ctx, const char *rel, const char *href, const char *type)
 {
     if (!ctx || !ctx->root || !rel || !href)
-        return -1;
+        return 0;
 
     html_element *head = html_find_head(ctx);
     if (!head)
     {
         html_set_error("Could not find head element");
-        return -1;
+        return 0;
     }
 
     html_element *saved_current = ctx->current;
@@ -327,7 +327,7 @@ int html_add_link(html_context *ctx, const char *rel, const char *href, const ch
     if (!attrs)
     {
         ctx->current = saved_current;
-        return -1;
+        return 0;
     }
 
     char *attrs_with_href = html_add_attribute(attrs, "href", href);
@@ -336,7 +336,7 @@ int html_add_link(html_context *ctx, const char *rel, const char *href, const ch
     if (!attrs_with_href)
     {
         ctx->current = saved_current;
-        return -1;
+        return 0;
     }
 
     char *final_attrs = attrs_with_href;
@@ -348,7 +348,7 @@ int html_add_link(html_context *ctx, const char *rel, const char *href, const ch
         if (!final_attrs)
         {
             ctx->current = saved_current;
-            return -1;
+            return 0;
         }
     }
 
@@ -357,28 +357,28 @@ int html_add_link(html_context *ctx, const char *rel, const char *href, const ch
 
     ctx->current = saved_current;
 
-    return link ? 0 : -1;
+    return link ? 1: 0;
 }
 
 int html_render(html_context *ctx)
 {
     if (!ctx || !ctx->root || !ctx->output_file)
-        return -1;
+        return 0;
 
     fprintf(ctx->output_file, "<!DOCTYPE html>\n");
 
-    ctx->indent_level = 0;
+    ctx->indent_level = 1;
     return html_render_element(ctx, ctx->root);
 }
 
 int html_render_element(html_context *ctx, html_element *element)
 {
     if (!ctx || !element || !ctx->output_file)
-        return -1;
+        return 0;
 
     char *indent = html_generate_indent(ctx->indent_level);
     if (!indent)
-        return -1;
+        return 0;
 
     fprintf(ctx->output_file, "%s<%s", indent, element->tagname);
 
@@ -391,7 +391,7 @@ int html_render_element(html_context *ctx, html_element *element)
     {
         fprintf(ctx->output_file, " />\n");
         free(indent);
-        return 0;
+        return 1;
     }
 
     fprintf(ctx->output_file, ">");
@@ -431,5 +431,5 @@ int html_render_element(html_context *ctx, html_element *element)
     fprintf(ctx->output_file, "</%s>\n", element->tagname);
 
     free(indent);
-    return 0;
+    return 1;
 }

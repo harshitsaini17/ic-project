@@ -7,7 +7,7 @@ int main()
     html_context *ctx = html_init_file("simple_output.html", "Simple HTML Example");
     if (!ctx)
     {
-        fprintf(stderr, "Failed to initialize HTML context: %s\n", html_get_last_error());
+        fprintf(stderr, "Failed to initialize HTML context: %s\n", html_get_error());
         return 1;
     }
 
@@ -59,8 +59,19 @@ int main()
     html_add_div(ctx, "class='footer'", "");
     html_begin_section(ctx, "class='footer'");
 
+    for (int i = 1; i < 6; i++)
+    {
+        char buffer[50];
+        snprintf(buffer, sizeof(buffer), "This is a repeated paragraph %d.", i);
+        html_add_heading(ctx, i , buffer, "");
+    }
+    
+
     html_add_paragraph(ctx, "",
                        "Created with the HTML Generation Library in C. &copy; 2025");
+
+    html_begin_tag(ctx, "hr", NULL);
+    html_end_tag(ctx);
 
     html_end_section(ctx);
 
