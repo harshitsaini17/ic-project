@@ -368,18 +368,18 @@ int html_is_self_closing(const char *tagname)
     return 0;
 }
 
-unsigned int html_hash_string(const char *str)
+unsigned int html_code_string(const char *str)
 {
     if (!str)
         return 0;
 
-    int hash = 0;
+    int index = 0;
     while (*str)
     {
-        hash = +*str++;
+        index = +*str++;
     }
 
-    return hash;
+    return index;
 }
 
 int html_resize_id_map(id_map *map)
@@ -406,13 +406,13 @@ int html_resize_id_map(id_map *map)
     {
         if (map->keys[i])
         {
-            unsigned int hash = html_hash_string(map->keys[i]) % new_capacity;
-            while (new_keys[hash])
+            unsigned int index = html_code_string(map->keys[i]) % new_capacity;
+            while (new_keys[index])
             {
-                hash = (hash + 1) % new_capacity;
+                index = (index + 1) % new_capacity;
             }
-            new_keys[hash] = map->keys[i];
-            new_values[hash] = map->values[i];
+            new_keys[index] = map->keys[i];
+            new_values[index] = map->values[i];
         }
     }
 

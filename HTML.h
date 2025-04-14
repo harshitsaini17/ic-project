@@ -59,7 +59,7 @@ void html_free_id_map(id_map *map);
 
 int html_resize_id_map(id_map *map);
 
-unsigned int html_hash_string(const char *str);
+unsigned int html_code_string(const char *str);
 
 int html_is_valid_child(const char *parent_tag, const char *child_tag);
 

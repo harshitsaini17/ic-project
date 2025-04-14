@@ -162,20 +162,20 @@ int html_register_element_by_id(html_context *ctx, html_element *element)
         }
     }
 
-    unsigned int hash = html_hash_string(element->id) % ctx->element_map->capacity;
+    unsigned int index = html_code_string(element->id) % ctx->element_map->capacity;
 
-    while (ctx->element_map->keys[hash] != NULL)
+    while (ctx->element_map->keys[index] != NULL)
     {
-        if (strcmp(ctx->element_map->keys[hash], element->id) == 0)
+        if (strcmp(ctx->element_map->keys[index], element->id) == 0)
         {
             html_set_error("Duplicate element ID: '%s'", element->id);
             return -1;
         }
-        hash = (hash + 1) % ctx->element_map->capacity;
+        index = (index + 1) % ctx->element_map->capacity;
     }
 
-    ctx->element_map->keys[hash] = element->id;
-    ctx->element_map->values[hash] = element;
+    ctx->element_map->keys[index] = element->id;
+    ctx->element_map->values[index] = element;
     ctx->element_map->size++;
 
     return 0;
@@ -186,16 +186,16 @@ html_element *html_get_element_by_id(html_context *ctx, const char *id)
     if (!ctx || !ctx->element_map || !id)
         return NULL;
 
-    unsigned int hash = html_hash_string(id) % ctx->element_map->capacity;
+    unsigned int index = html_code_string(id) % ctx->element_map->capacity;
 
     int i = 0;
-    while (ctx->element_map->keys[hash] != NULL && i < ctx->element_map->capacity)
+    while (ctx->element_map->keys[index] != NULL && i < ctx->element_map->capacity)
     {
-        if (ctx->element_map->keys[hash] && strcmp(ctx->element_map->keys[hash], id) == 0)
+        if (ctx->element_map->keys[index] && strcmp(ctx->element_map->keys[index], id) == 0)
         {
-            return ctx->element_map->values[hash];
+            return ctx->element_map->values[index];
         }
-        hash = (hash + 1) % ctx->element_map->capacity;
+        index = (index + 1) % ctx->element_map->capacity;
         i++;
     }
 
